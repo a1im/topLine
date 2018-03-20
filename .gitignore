@@ -18,7 +18,7 @@
 /vendor/*
 composer.lock
 
-/htdocs/assets/
-/htdocs/assets/*
+/dist/assets/
+/dist/assets/*
 
 /webogram-master/
