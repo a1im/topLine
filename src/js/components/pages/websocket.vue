@@ -24,18 +24,14 @@
     </div>
 </template>
 <script>
+    import ws from '@/utils/websocket'
 
-    const SOCKET_TIMEOUT = 333;
 
     export default {
         components: {},
 
         data() {
             return {
-                socket: new WebSocket('ws://echo.websocket.org/'),
-                isOpen: false,
-                numRequest: 1,
-                numResponse: [],
                 comments: [
                     {text: 'Тестовый коммент 1'},
                     {text: 'Это шедевр'},
@@ -54,56 +50,24 @@
         watch: {},
 
         methods: {
-            cl(msg) {
-                console.log('socket', msg);
-            },
-
             delComment(comment) {
-                this.socketRequest(this.numRequest++).then(() => {
-                    this.cl('Комментарий удален ' + comment.text);
+                ws.socketRequest({command: 'delComment', text: comment.text}).then(() => {
+                    console.log('Комментарий удален ' + comment.text);
                     this.comments = this.comments.filter(el => el !== comment);
                 }).catch(() => {
-                    this.cl('Ошибка удаления комментария - ' + comment.text)
+                    console.log('Ошибка удаления комментария - ' + comment.text)
                 });
             },
 
-            socketRequest(num) {
-                return new Promise((resolve, reject) => {
-                    if (this.isOpen) {
-                        this.socket.send(num);
-                        setTimeout(() => {
-                            if (this.numResponse.some(el => el === num)) resolve();
-                            else reject();
-                            this.numResponse = this.numResponse.filter(el => el !== num)
-                        }, SOCKET_TIMEOUT);
-                    } else reject();
-                })
-            },
         },
 
         created() {
-            this.socket.onopen = () => {
-                this.isOpen = true;
-            };
+            ws.setTimeout(333);
+            ws.open('ws://echo.websocket.org/');
+        },
 
-            this.socket.onclose = (event) => {
-                this.isOpen = false;
-                if (event.wasClean) {
-                    this.cl('Соединение закрыто чисто');
-                } else {
-                    this.cl('Обрыв соединения');
-                }
-                this.cl('Код: ' + event.code + ' причина: ' + event.reason);
-            };
-
-            this.socket.onmessage = (event) => {
-                this.numResponse.push((parseInt(event.data) || -1));
-                this.cl("Получены данные: " + event.data);
-            };
-
-            this.socket.onerror = (error) => {
-                this.cl("Ошибка " + error.message);
-            };
+        beforeDestroy() {
+            ws.close();
         },
 
     }
