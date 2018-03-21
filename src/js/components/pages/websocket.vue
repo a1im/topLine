@@ -51,7 +51,7 @@
 
         methods: {
             delComment(comment) {
-                ws.socketRequest({command: 'delComment', text: comment.text}).then(() => {
+                ws.socketRequest({command: 'delComment', text: comment.text}, 400).then(() => {
                     console.log('Комментарий удален ' + comment.text);
                     this.comments = this.comments.filter(el => el !== comment);
                 }).catch(() => {
@@ -62,7 +62,6 @@
         },
 
         created() {
-            ws.setTimeout(333);
             ws.open('ws://echo.websocket.org/');
         },
 

@@ -39,12 +39,13 @@ export default {
         if (_websocket) _websocket.close();
     },
 
-    socketRequest(data = {}) {
+    socketRequest(data = {}, timeout = null) {
         let num = _numRequest++;
         let body = {
             num: num,
             data: data,
         };
+        timeout = timeout ? timeout : _timeout;
         return new Promise((resolve, reject) => {
             if (_websocket.readyState === _websocket.OPEN) {
                 _websocket.send(JSON.stringify(body));
@@ -52,7 +53,7 @@ export default {
                     if (_numResponses.some(el => el === num)) resolve();
                     else reject();
                     _numResponses = _numResponses.filter(el => el !== num)
-                }, _timeout);
+                }, timeout);
             } else reject();
         })
     },
