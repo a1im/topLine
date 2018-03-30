@@ -51,14 +51,14 @@
 
         methods: {
             delComment(comment) {
-                ws.socketRequest({command: 'delComment', text: comment.text}, 400).then(() => {
+                ws.socketRequest({command: 'delComment', text: comment.text}, 300).then(() => {
                     console.log('Комментарий удален ' + comment.text);
                     this.comments = this.comments.filter(el => el !== comment);
                 }).catch(() => {
                     console.log('Ошибка удаления комментария - ' + comment.text)
                 });
+                console.log('sdgg');
             },
-
         },
 
         created() {

@@ -39,8 +39,9 @@ export default {
         if (_websocket) _websocket.close();
     },
 
-    socketRequest(data = {}, timeout = null) {
+    async socketRequest(data = {}, timeout = null) {
         let num = _numRequest++;
+        let isTimeout = false;
         let body = {
             num: num,
             data: data,
@@ -49,11 +50,28 @@ export default {
         return new Promise((resolve, reject) => {
             if (_websocket.readyState === _websocket.OPEN) {
                 _websocket.send(JSON.stringify(body));
-                setTimeout(() => {
+                let tm = setTimeout(() => {
                     if (_numResponses.some(el => el === num)) resolve();
                     else reject();
-                    _numResponses = _numResponses.filter(el => el !== num)
+                    _numResponses = _numResponses.filter(el => el !== num);
+                    isTimeout = true;
                 }, timeout);
+                // проверяем наличие поступившего ответа от сервера, пока таймаут не отработал!
+                const wait = () => {
+                    if (!isTimeout) {
+                        setTimeout(() => {
+                            if (!_numResponses.some(el => el === num)) {
+                                wait()
+                            } else {
+                                clearTimeout(tm);
+                                resolve();
+                                _numResponses = _numResponses.filter(el => el !== num);
+                            }
+                        });
+                    }
+                };
+
+                wait();
             } else reject();
         })
     },
